@@ -2,115 +2,148 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>RAP GOAT TOURNAMENT PRO</title>
+<title>RAP GOAT TOURNAMENT</title>
 <style>
 body { font-family: Arial, sans-serif; background:#0b0b0b; color:#fff; text-align:center; }
-.container { max-width:1100px; margin:auto; padding:20px; }
-h1 { margin-bottom:10px; }
-.grid { display:flex; justify-content:space-between; margin-top:30px; }
-.round { width:30%; }
-.match { margin:15px 0; }
-.card {
- background:#1a1a1a;
- padding:15px;
- border-radius:10px;
- margin:5px;
- cursor:pointer;
- transition:0.2s;
-}
-.card:hover { background:#f39c12; color:#000; }
-.winner { background:#2ecc71 !important; color:#000; }
-button {
- padding:10px 20px;
- margin-top:10px;
- cursor:pointer;
- border:none;
- border-radius:5px;
- background:#f39c12;
- font-weight:bold;
-}
-iframe { margin-top:10px; border-radius:10px; }
+.container { max-width:900px; margin:auto; padding:20px; }
+.album { margin-bottom:40px; }
+img { width:200px; border-radius:10px; }
+.track { display:block; margin:5px auto; padding:10px; background:#1a1a1a; border-radius:5px; cursor:pointer; }
+.track:hover { background:#f39c12; color:#000; }
+.selected { background:#2ecc71 !important; color:#000; }
+button { padding:10px 20px; margin-top:20px; cursor:pointer; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>🏆 RAP GOAT TOURNAMENT 🏆</h1>
+<h1>🎧 Elegí el mejor tema por álbum</h1>
 <div id="app"></div>
 </div>
 
 <script>
 const data = [
-{ name:"Eminem", track:"Till I Collapse", yt:"https://www.youtube.com/embed/ytQ5CYE1VZw" },
-{ name:"WOS", track:"Arrancármelo", yt:"https://www.youtube.com/embed/5s3W7p4sD2g" },
-{ name:"Tupac", track:"California Love", yt:"https://www.youtube.com/embed/5wBTdfAkqGU" },
-{ name:"Trueno", track:"Dance Crip", yt:"https://www.youtube.com/embed/4mG2R4HcZ5s" },
-{ name:"Nas", track:"NY State of Mind", yt:"https://www.youtube.com/embed/hI8A14Qcv68" },
-{ name:"Kendrick Lamar", track:"HUMBLE", yt:"https://www.youtube.com/embed/tvTRZJ-4EyI" },
-{ name:"Canserbero", track:"Es Épico", yt:"https://www.youtube.com/embed/Q5NnE4s1XcE" },
-{ name:"Duki", track:"Goteo", yt:"https://www.youtube.com/embed/bwZ6p7n7H9Q" }
+{
+name:"Eminem",
+album:"The Eminem Show",
+cover:"https://upload.wikimedia.org/wikipedia/en/3/35/The_Eminem_Show.jpg",
+tracks:["Without Me","Till I Collapse","Sing for the Moment","Cleanin' Out My Closet"]
+},
+{
+name:"WOS",
+album:"Oscuro Éxtasis",
+cover:"https://upload.wikimedia.org/wikipedia/en/7/7e/Oscuro_Extasis.jpg",
+tracks:["Arrancármelo","Culpa","Mugre","Que se mejoren"]
+},
+{
+name:"Tupac",
+album:"All Eyez on Me",
+cover:"https://upload.wikimedia.org/wikipedia/en/1/16/All_Eyez_on_Me.jpg",
+tracks:["California Love","Ambitionz Az a Ridah","Life Goes On","I Ain't Mad at Cha"]
+},
+{
+name:"Trueno",
+album:"Bien o Mal",
+cover:"https://upload.wikimedia.org/wikipedia/en/5/5f/Bien_o_Mal.jpg",
+tracks:["Dance Crip","Mamichula","Argentina","Tierra Zanta"]
+}
 ];
 
-let bracket = [];
-let rounds = [];
-
-function init(){
-bracket = shuffle([...data]);
-rounds = [bracket];
-render();
-}
-
-function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
-
-function nextRound(winners){
-rounds.push(winners);
-render();
-}
+let selections = {};
 
 function render(){
-let html = `<div class='grid'>`;
+let html = "";
 
-rounds.forEach((round, rIndex)=>{
-html += `<div class='round'><h3>Ronda ${rIndex+1}</h3>`;
-for(let i=0;i<round.length;i+=2){
-if(round[i+1]){
-html += `<div class='match'>
-<div class='card' onclick='selectWinner(${rIndex},${i})'>${round[i].name}<br>${round[i].track}</div>
-<div class='card' onclick='selectWinner(${rIndex},${i+1})'>${round[i+1].name}<br>${round[i+1].track}</div>
-</div>`;
-}
-}
-html += `</div>`;
+data.forEach((a,i)=>{
+html += `
+<div class='album'>
+<h2>${a.name}</h2>
+<h3>${a.album}</h3>
+<img src='${a.cover}' />
+<div>
+${a.tracks.map(t=>`<div class='track' onclick="select(${i},'${t}', this)">${t}</div>`).join("")}
+</div>
+</div>
+`;
 });
 
-html += `</div>`;
-
-if(rounds[rounds.length-1].length === 1){
-let win = rounds[rounds.length-1][0];
-html += `<h2>🏆 GANADOR: ${win.name}</h2>
-<iframe width='300' height='170' src='${win.yt}' allowfullscreen></iframe>
-<br><button onclick='init()'>Reiniciar</button>`;
-}
+html += `<button onclick='showResults()'>Ver resultados</button>`;
 
 document.getElementById("app").innerHTML = html;
 }
 
-function selectWinner(roundIndex, index){
-let round = rounds[roundIndex];
-let winners = rounds[roundIndex+1] || [];
+function select(index, track, el){
+selections[index] = track;
 
-let matchIndex = Math.floor(index/2);
-winners[matchIndex] = round[index];
+let tracks = el.parentNode.querySelectorAll('.track');
+tracks.forEach(t=>t.classList.remove('selected'));
 
-rounds[roundIndex+1] = winners.filter(Boolean);
+el.classList.add('selected');
+}
 
-if(winners.filter(Boolean).length === round.length/2){
-nextRound(rounds[roundIndex+1]);
-} else {
+function showResults(){
+let html = "<h2>🏆 Tus elecciones</h2>";
+
+data.forEach((a,i)=>{
+if(selections[i]){
+html += `<p>${a.name} - ${selections[i]}</p>`;
+}
+});
+
+html += `<button onclick='startTournament()'>Ir al torneo</button>`;
+
+document.getElementById("app").innerHTML = html;
+}
+
+function startTournament(){
+let players = data.map((a,i)=>({ artist:a.name, track:selections[i] })).filter(p=>p.track);
+
+if(players.length < 2){
+alert("Elegí al menos 2 artistas");
+return;
+}
+
+runBracket(players);
+}
+
+function runBracket(players){
+if(players.length === 1){
+document.getElementById("app").innerHTML = `<h1>🏆 GANADOR: ${players[0].artist} - ${players[0].track}</h1>`;
+return;
+}
+
+let html = "<h2>🔥 Duelo</h2>";
+
+for(let i=0;i<players.length;i+=2){
+let a = players[i];
+let b = players[i+1];
+
+if(!b){ html += `<p>${a.artist} pasa</p>`; continue; }
+
+html += `
+<div>
+<button onclick='nextRound(${i})'>${a.artist}<br>${a.track}</button>
+<button onclick='nextRound(${i+1})'>${b.artist}<br>${b.track}</button>
+</div>
+`;
+}
+
+window.currentPlayers = players;
+document.getElementById("app").innerHTML = html;
+}
+
+function nextRound(index){
+let winners = [window.currentPlayers[index]];
+
+for(let i=0;i<window.currentPlayers.length;i+=2){
+if(i!==index && i!==index-1){
+if(window.currentPlayers[i+1]) winners.push(window.currentPlayers[i]);
+}
+}
+
+runBracket(winners);
+}
+
 render();
-}
-}
-
-init();
 </script>
 </body>
 </html>
